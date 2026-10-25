@@ -18,10 +18,5 @@ Este repositorio contiene la resolución de 5 ejercicios prácticos orientados a
 * IndexedDB
 * Web APIs (Geolocation, MediaDevices, Notifications, Permissions)
 
-## Cómo ejecutar el proyecto localmente
-Para probar los Service Workers y las notificaciones (Ejercicios 3 y 5), es necesario ejecutar el proyecto en un servidor local (no usar `file:///`).
-* Si usas VS Code, puedes utilizar la extensión **Live Server**.
-* Abre el archivo `index.html` de la raíz y presiona "Open with Live Server".
-
 ## Autor
 * **Alondra Gómez**
