@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 4</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="contenedor-ejercicio" style="max-width: 800px;">
+        <h2>CRUD IndexedDB</h2>
+        <div style="display: flex; gap: 30px; align-items: flex-start;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" id="nombre" placeholder="Nombre de la persona">
+                <button id="btnGuardar">Guardar Registro</button>
+                <button id="btnListar" style="background: #4a5568;">Actualizar Lista</button>
+            </div>
+
+            <div style="flex: 1; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px; min-height: 200px;">
+                <h3 style="text-align: center; margin-bottom: 10px; color: #4a5568;">Usuarios Guardados</h3>
+                <ul id="lista" style="background: transparent; border: none; padding: 0;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let db;
+        const request = indexedDB.open("MiBaseDatos", 1);
+
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore("usuarios", { keyPath: "id", autoIncrement: true });
+        };
+
+        request.onsuccess = (e) => { db = e.target.result; };
+        request.onerror = (e) => { console.error("Error DB", e); };
+
+        // INSERTAR
+        document.getElementById('btnGuardar').addEventListener('click', () => {
+            const nombre = document.getElementById('nombre').value;
+            if(!nombre) return;
+            const transaction = db.transaction(["usuarios"], "readwrite");
+            const store = transaction.objectStore("usuarios");
+            store.add({ nombre: nombre });
+            document.getElementById('nombre').value = '';
+        });
+
+        // CONSULTAR
+        document.getElementById('btnListar').addEventListener('click', () => {
+            const lista = document.getElementById('lista');
+            lista.innerHTML = '';
+            const transaction = db.transaction(["usuarios"], "readonly");
+            const store = transaction.objectStore("usuarios");
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                request.result.forEach(user => {
+                    const li = document.createElement('li');
+                    li.textContent = `${user.nombre} `;
+                    const btnEliminar = document.createElement('button');
+                    btnEliminar.textContent = 'Eliminar';
+                    btnEliminar.onclick = () => eliminar(user.id);
+                    li.appendChild(btnEliminar);
+                    lista.appendChild(li);
+                });
+            };
+        });
+
+        // ELIMINAR
+        function eliminar(id) {
+            const transaction = db.transaction(["usuarios"], "readwrite");
+            const store = transaction.objectStore("usuarios");
+            store.delete(id).onsuccess = () => {
+                alert("Registro eliminado");
+                document.getElementById('btnListar').click(); // Refrescar lista
+            };
+        }
+    </script>
+</body>
+</html>

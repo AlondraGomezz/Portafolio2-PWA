@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"><title>Ejercicio 1</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+    #btnUbicacion {
+        width: auto;
+        align-self: center; 
+        padding: 10px 30px;
+    }
+    #resultado iframe {
+        width: 200%;
+        height: 500px;
+        margin-top: 10px;
+    }
+    #resultado {
+        background: transparent; 
+        border-left: none;
+        padding: 0;
+    }
+    #resultado p {
+        font-size: 1.1rem;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+</style>
+</head>
+<body>
+    <h2>Permisos y Geolocalización</h2>
+    <p>Estado del permiso: <span id="permisoEstado">Consultando...</span></p>
+    <button id="btnUbicacion">Obtener Ubicación GPS</button>
+    <div id="resultado"></div>
+
+    <script>
+        // 1. Verificar Permisos
+        navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+            document.getElementById('permisoEstado').innerText = result.state;
+            result.onchange = () => {
+                document.getElementById('permisoEstado').innerText = result.state;
+            };
+        });
+
+        // 2. Solicitar GPS y mostrar
+        document.getElementById('btnUbicacion').addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                alert("Geolocalización no soportada");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    document.getElementById('resultado').innerHTML = `
+                        <p><strong>Latitud:</strong> ${lat}</p>
+                        <p><strong>Longitud:</strong> ${lon}</p>
+                        <!-- Mapa interactivo incrustado sin API Key -->
+                        <iframe 
+                            width="100%" 
+                            height="300" 
+                            style="border:0; border-radius: 10px; margin-top: 15px;" 
+                            loading="lazy" 
+                            allowfullscreen 
+                            src="https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed">
+                        </iframe>
+                    `;
+                },
+                (error) => { alert("Error: " + error.message); }
+            );
+        });
+    </script>
+</body>
+</html>

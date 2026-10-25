@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"><title>Ejercicio 5</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="contenedor-ejercicio" style="max-width: 700px;">
+        <h2>API Network-First</h2>
+        <button id="btnCargar">Cargar Datos de API</button>
+        <p id="estado" style="text-align: center; font-weight: bold; color: #718096;"></p>
+        <pre id="resultado" style="
+            background: #1a202c; 
+            color: #68d391; 
+            padding: 20px; 
+            border-radius: 8px; 
+            overflow-x: auto; 
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            border-left: 5px solid #38a169;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            min-height: 200px;
+            white-space: pre-wrap;
+        "></pre>
+    </div>
+
+    <script>
+        const API_URL = 'https://jsonplaceholder.typicode.com/posts/1'; 
+        const DB_NAME = 'CacheAPI_DB';
+        const STORE_NAME = 'json_data';
+        let db;
+
+        // Abrir DB para caché
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => { e.target.result.createObjectStore(STORE_NAME); };
+        request.onsuccess = (e) => { db = e.target.result; };
+
+        document.getElementById('btnCargar').addEventListener('click', async () => {
+            const status = document.getElementById('estado');
+            const resultado = document.getElementById('resultado');
+            status.innerText = "Cargando datos...";
+            
+            try {
+                // Network First
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("Error de red");
+                const data = await response.json();
+
+                // Guardar en caché (IndexedDB)
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).put(data, 'ultimo_dato');
+                
+                resultado.innerText = JSON.stringify(data, null, 2);
+                status.innerText = "Datos obtenidos de la red (Online).";
+            } catch (error) {
+                // Fallback a IndexedDB (Offline)
+                status.innerText = "Sin red. Cargando desde caché local...";
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const getReq = store.get('ultimo_dato');
+
+                getReq.onsuccess = () => {
+                    if (getReq.result) {
+                        resultado.innerText = JSON.stringify(getReq.result, null, 2);
+                    } else {
+                        resultado.innerText = "No hay datos guardados en caché.";
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html>

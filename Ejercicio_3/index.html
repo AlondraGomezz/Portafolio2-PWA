@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 3</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="contenedor-ejercicio" style="max-width: 600px;">
+        <h2>Notificaciones Push Locales</h2>
+        <div style="display: flex; gap: 15px;">
+            <button id="btnPermiso">1. Pedir Permiso</button>
+            <button id="btnNotificar" style="background: #2b6cb0;">2. Enviar Notificación</button>
+        </div>
+    </div>
+
+    <script>
+        let swReg;
+
+        // Registrar SW
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('../sw.js')
+                .then(reg => { swReg = reg; console.log('SW registrado'); })
+                .catch(err => console.error('Error SW', err));
+        }
+
+        // Pedir permiso
+        document.getElementById('btnPermiso').addEventListener('click', () => {
+            Notification.requestPermission().then(permission => {
+                alert("Permiso: " + permission);
+            });
+        });
+
+        // Disparar notificación a través del SW
+        document.getElementById('btnNotificar').addEventListener('click', () => {
+            if (Notification.permission === 'granted' && swReg) {
+                swReg.active.postMessage({
+                    tipo: 'MOSTRAR_NOTIFICACION',
+                    titulo: '¡Hola desde la PWA!',
+                    cuerpo: 'Esta es una notificación local desde el Service Worker.'
+                });
+            } else {
+                alert("Primero debes conceder permisos.");
+            }
+        });
+    </script>
+</body>
+</html>
